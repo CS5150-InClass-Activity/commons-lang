@@ -105,15 +105,7 @@ public final class IntegerRange extends NumberRange<Integer> {
      * @since 3.19.0
      */
     public int fit(final int element) {
-        final int min = getMinimum();
-        final int max = getMaximum();
-        if (element < min) {
-            return max;
-        }
-        if (element > max) {
-            return min;
-        }
-        return element;
+        return super.fit(element).intValue();
     }
 
     /**
