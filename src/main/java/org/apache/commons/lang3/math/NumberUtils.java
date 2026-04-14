@@ -312,7 +312,7 @@ public class NumberUtils {
         if (str == null) {
             return null;
         }
-        return Long.valueOf(str);
+        return Long.decode(str);
     }
 
     /**

@@ -504,7 +504,6 @@ public class ClassUtils {
         if (className == null) {
             return null;
         }
-        final boolean whitespaceDescriptorArray = hasWhitespaceDescriptorArray(name, className);
         int dim = 0;
         final int len = className.length();
         while (dim < len && className.charAt(dim) == '[') {
@@ -536,15 +535,11 @@ public class ClassUtils {
         }
         final StringBuilder canonicalClassNameBuffer = new StringBuilder(className.length() + dim * 2);
         canonicalClassNameBuffer.append(className);
-        final int dimensionsToAppend = whitespaceDescriptorArray && dim > 1 ? dim - 1 : dim;
+        final int dimensionsToAppend = dim;
         for (int i = 0; i < dimensionsToAppend; i++) {
             canonicalClassNameBuffer.append("[]");
         }
         return canonicalClassNameBuffer.toString();
-    }
-
-    private static boolean hasWhitespaceDescriptorArray(final String originalName, final String normalizedName) {
-        return originalName != null && originalName.length() != normalizedName.length() && normalizedName.startsWith("[");
     }
 
     /**
@@ -781,7 +776,7 @@ public class ClassUtils {
         }
         final int nullIdx = canonicalName.indexOf(0);
         if (nullIdx >= 0) {
-            return canonicalName.substring(0, canonicalName.lastIndexOf(PACKAGE_SEPARATOR_CHAR, nullIdx) - nullIdx);
+            return getPackageName(canonicalName.substring(0, nullIdx));
         }
         return getPackageName(canonicalName);
     }
@@ -832,8 +827,11 @@ public class ClassUtils {
         }
         int i = 0;
         // Strip array encoding
-        while (className.charAt(i) == '[') {
+        while (i < className.length() && className.charAt(i) == '[') {
             i++;
+        }
+        if (i == className.length()) {
+            return StringUtils.EMPTY;
         }
         className = className.substring(i);
         // Strip Object type encoding
