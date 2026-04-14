@@ -340,7 +340,7 @@ public class RandomStringUtils {
         }
         final StringBuilder builder = new StringBuilder(count);
         final int gap = end - start;
-        final int gapBits = Math.max(1, Integer.SIZE - Integer.numberOfLeadingZeros(gap) - 1);
+        final int gapBits = Math.max(1, Integer.SIZE - Integer.numberOfLeadingZeros(gap - 1));
         // The size of the cache we use is an heuristic:
         // about twice the number of bytes required if no rejection
         // Ideally the cache size depends on multiple factor, including the cost of generating x bytes
