@@ -101,6 +101,12 @@
       <version>${commons.jmh.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.code-intelligence</groupId>
+      <artifactId>jazzer-junit</artifactId>
+      <version>0.30.0</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <distributionManagement>
     <site>
