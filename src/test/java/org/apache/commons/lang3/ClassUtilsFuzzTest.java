@@ -14,41 +14,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// package org.apache.commons.lang3;
+package org.apache.commons.lang3;
 
-// import com.code_intelligence.jazzer.junit.FuzzTest;
-// import org.junit.jupiter.params.provider.ValueSource;
-/*
- * This is a Jazzer fuzz test for ClassUtils.getClass.
- *
- * A fuzz test is like a unit test, but instead of giving the method
- * one hand-written input, Jazzer keeps generating many inputs automatically.
- *
- * The goal here is to see whether ClassUtils.getClass behaves reasonably
- * for many possible class-name strings.
- */
-// class ClassUtilsFuzzTest {
-//     @ValueSource(strings = {"[Ljava.lang.String;"}) // Give Jazzer one example input to start from.
-//     @FuzzTest(maxDuration = "10s") // Tell Jazzer to fuzz this test for up to 10 seconds.
-//     void fuzzGetClass(final String className) { // className is the fuzz input.
+import com.code_intelligence.jazzer.junit.FuzzTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
-//         // Defensive check: if the generated input is null, skip this run.
-//         if (className == null) {
-//             return;
-//         }
+class ClassUtilsFuzzTest {
 
-//         try {
-//             // fuzz target
-//             // Try to resolve the given string as a Java class name.
-//             ClassUtils.getClass(className);
+    @ValueSource(strings = {" [ Ljava.lang.String; "})
+    @FuzzTest(maxDuration = "10s")
+    void fuzzGetClass(final String className) {
+        if (className == null) {
+            return;
+        }
+        try {
+            ClassUtils.getClass(className);
+        } catch (final ClassNotFoundException | IllegalArgumentException ex) {
+            // Invalid or non-existent type names are valid fuzz outcomes.
+        }
+    }
 
-//         } catch (final ClassNotFoundException | IllegalArgumentException ex) {}
-//         // These exceptions are treated as acceptable outcomes for bad inputs.
-//         //
-//         // ClassNotFoundException:
-//         //   The class name does not refer to a real class.
-//         //
-//         // IllegalArgumentException:
-//         //   The input format is not valid for this API.
-//     }
-// }
+    @ValueSource(strings = {"[[Ljava.lang.String;", "[I", "java.lang.String"})
+    @FuzzTest(maxDuration = "10s")
+    void fuzzGetPackageCanonicalName(final String className) {
+        try {
+            ClassUtils.getPackageCanonicalName(className);
+        } catch (final IllegalArgumentException ex) {
+            // Invalid class descriptors are valid fuzz outcomes.
+        }
+    }
+}

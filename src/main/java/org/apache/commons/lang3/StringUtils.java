@@ -1814,7 +1814,7 @@ public class StringUtils {
      */
     @Deprecated
     public static boolean equals(final CharSequence cs1, final CharSequence cs2) {
-        return cs1 == null ? cs2 == null : cs1.equals(cs2);
+        return Strings.CS.equals(cs1, cs2);
     }
 
     /**
