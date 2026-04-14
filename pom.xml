@@ -67,6 +67,12 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>com.code-intelligence</groupId>
+      <artifactId>jazzer-junit</artifactId>
+      <version>0.24.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.junit-pioneer</groupId>
       <artifactId>junit-pioneer</artifactId>
       <scope>test</scope>
