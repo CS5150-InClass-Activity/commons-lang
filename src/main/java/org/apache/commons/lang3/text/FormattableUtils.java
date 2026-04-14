@@ -20,7 +20,8 @@ import java.util.Formattable;
 import java.util.FormattableFlags;
 import java.util.Formatter;
 
-import org.apache.commons.lang3.CharSequenceUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
 /**
@@ -96,7 +97,7 @@ public class FormattableUtils {
                 "Specified ellipsis '%1$s' exceeds precision of %2$s", ellipsis, Integer.valueOf(precision));
         final StringBuilder buf = new StringBuilder(seq);
         if (precision >= 0 && precision < seq.length()) {
-            final CharSequence actualEllipsis = CharSequenceUtils.normalizeFormattableEllipsis(ellipsis);
+            final CharSequence actualEllipsis = ObjectUtils.getIfNull(ellipsis, StringUtils.EMPTY);
             buf.replace(precision - actualEllipsis.length(), seq.length(), actualEllipsis.toString());
         }
         final boolean leftJustify = (flags & FormattableFlags.LEFT_JUSTIFY) == FormattableFlags.LEFT_JUSTIFY;
