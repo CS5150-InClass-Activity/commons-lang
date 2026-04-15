@@ -504,7 +504,6 @@ public class ClassUtils {
         if (className == null) {
             return null;
         }
-        final boolean whitespaceDescriptorArray = hasWhitespaceDescriptorArray(name, className);
         int dim = 0;
         final int len = className.length();
         while (dim < len && className.charAt(dim) == '[') {
@@ -536,15 +535,10 @@ public class ClassUtils {
         }
         final StringBuilder canonicalClassNameBuffer = new StringBuilder(className.length() + dim * 2);
         canonicalClassNameBuffer.append(className);
-        final int dimensionsToAppend = whitespaceDescriptorArray && dim > 1 ? dim - 1 : dim;
-        for (int i = 0; i < dimensionsToAppend; i++) {
+        for (int i = 0; i < dim; i++) {
             canonicalClassNameBuffer.append("[]");
         }
         return canonicalClassNameBuffer.toString();
-    }
-
-    private static boolean hasWhitespaceDescriptorArray(final String originalName, final String normalizedName) {
-        return originalName != null && originalName.length() != normalizedName.length() && normalizedName.startsWith("[");
     }
 
     /**
@@ -778,10 +772,6 @@ public class ClassUtils {
         final String canonicalName = getCanonicalName(name);
         if (canonicalName == null) {
             return getPackageName((String) null);
-        }
-        final int nullIdx = canonicalName.indexOf(0);
-        if (nullIdx >= 0) {
-            return canonicalName.substring(0, canonicalName.lastIndexOf(PACKAGE_SEPARATOR_CHAR, nullIdx) - nullIdx);
         }
         return getPackageName(canonicalName);
     }
@@ -1631,10 +1621,6 @@ public class ClassUtils {
         final boolean encodedName = canonicalName.startsWith(encodedArrayOpen) && canonicalName.endsWith(encodedClassNameEnd);
         if (encodedName) {
             final int arrIdx = canonicalName.indexOf(encodedClassNameStart);
-            final int nullIdx = canonicalName.indexOf(0);
-            if (nullIdx >= 0) {
-                canonicalName = canonicalName.substring(0, nullIdx - arrIdx) + canonicalName.substring(nullIdx + 1);
-            }
             if (arrIdx > MAX_JVM_ARRAY_DIMENSION) {
                 throw new IllegalArgumentException("Array dimension greater than JVM specification maximum of 255.");
             }
