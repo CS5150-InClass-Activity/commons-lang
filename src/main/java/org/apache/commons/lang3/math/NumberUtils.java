@@ -312,7 +312,8 @@ public class NumberUtils {
         if (str == null) {
             return null;
         }
-        return Long.valueOf(str);
+        // decode() handles 0xAABD and 0777 (hex and octal) as well.
+        return Long.decode(str);
     }
 
     /**
