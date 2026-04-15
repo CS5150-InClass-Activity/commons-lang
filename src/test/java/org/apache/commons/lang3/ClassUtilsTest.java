@@ -490,6 +490,17 @@ class ClassUtilsTest extends AbstractLangTest {
     }
 
     @Test
+    void test_getShortCanonicalName_String_WhitespaceInMultidimensionalArrayDescriptor() {
+        assertEquals("String[][]", ClassUtils.getShortCanonicalName("[ [ Ljava.lang.String; "));
+        assertEquals("ClassUtils[][]", ClassUtils.getShortCanonicalName("[ [ Lorg.apache.commons.lang3.ClassUtils; "));
+    }
+
+    @Test
+    void test_getPackageCanonicalName_String_embeddedNul() {
+        assertEquals("a", ClassUtils.getPackageCanonicalName("a.b\0"));
+    }
+
+    @Test
     void test_getPackageName_Class() {
         assertEquals("java.lang", ClassUtils.getPackageName(String.class));
         assertEquals("java.util", ClassUtils.getPackageName(Map.Entry.class));
@@ -1320,6 +1331,7 @@ class ClassUtilsTest extends AbstractLangTest {
     @Test
     void testGetClassWhitespaceEncodedArrayName() throws ClassNotFoundException {
         assertEquals(String[].class, ClassUtils.getClass(" [ Ljava.lang.String; "));
+        assertEquals(String[][].class, ClassUtils.getClass("[ [ Ljava.lang.String; "));
     }
 
     @Test
