@@ -853,6 +853,14 @@ class DateUtilsTest extends AbstractLangTest {
         calb.set(Calendar.MILLISECOND, 0);
         assertTrue(DateUtils.isSameLocalTime(cala, calb));
 
+        final Calendar calc = Calendar.getInstance();
+        final Calendar cald = Calendar.getInstance();
+        calc.set(2004, Calendar.JULY, 9, 4,  0, 0);
+        cald.set(2004, Calendar.JULY, 9, 16, 0, 0);
+        calc.set(Calendar.MILLISECOND, 0);
+        cald.set(Calendar.MILLISECOND, 0);
+        assertFalse(DateUtils.isSameLocalTime(calc, cald), "LANG-677");
+
         calb.set(2004, Calendar.JULY, 9, 11, 45, 0);
         assertFalse(DateUtils.isSameLocalTime(cala, calb));
     }
@@ -1673,4 +1681,3 @@ class DateUtilsTest extends AbstractLangTest {
     }
 
 }
-
