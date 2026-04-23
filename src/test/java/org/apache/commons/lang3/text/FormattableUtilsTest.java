@@ -111,6 +111,13 @@ class FormattableUtilsTest extends AbstractLangTest {
     }
 
     @Test
+    void testEmptyEllipsisHardTruncation() {
+        assertEquals("fo", FormattableUtils.append("foo", new Formatter(), 0, -1, 2, "").toString());
+        assertEquals(" fo", FormattableUtils.append("foo", new Formatter(), 0, 3, 2, "").toString());
+        assertEquals("fo ", FormattableUtils.append("foo", new Formatter(), FormattableFlags.LEFT_JUSTIFY, 3, 2, "").toString());
+    }
+
+    @Test
     void testIllegalEllipsis() {
         assertIllegalArgumentException(() -> FormattableUtils.append("foo", new Formatter(), 0, -1, 1, "xx"));
     }
