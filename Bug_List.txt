@@ -1,0 +1,108 @@
+
+Licensed to the Apache Software Foundation (ASF) under one or more
+contributor license agreements.  See the NOTICE file distributed with
+this work for additional information regarding copyright ownership.
+The ASF licenses this file to You under the Apache License, Version 2.0
+(the "License"); you may not use this file except in compliance with
+the License.  You may obtain a copy of the License at
+
+https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+Apache Commons Lang 3.20.0 Release Notes
+----------------------------------------
+
+For in-class activity 2, we injected a total of 9 bugs into the Commons Lang repository. The following are descriptions of each injected bug:
+
+Bug1 (Simple):
+- Path to the bug: commons-lang/commons-lang/src/main/java/org/apache/commons/lang3/math/NumberUtils.java::315
+- Original code: return Long.decode(str);
+- Changed code: return Long.valueOf(str);
+- Bug: Hex inputs such as +0xFFFFFFFF threw NumberFormatException instead of being decoded correctly. The decode function would handle this correctly.
+
+Bug2 (Simple):
+- Path to the bug: commons-lang/commons-lang/src/main/java/org/apache/commons/lang3/RandomStringUtils.java::343
+- Original code: final int gapBits = Integer.SIZE - Integer.numberOfLeadingZeros(gap);
+- Changed code: final int gapBits = Math.max(1, Integer.SIZE - Integer.numberOfLeadingZeros(gap) - 1);
+- Bug: The method needs 2^gapBits >= gap to cover indices 0 ... gap-1. The injected "- 1" is only right
+       for a power-of-two gap; otherwise gapBits is too small. Unreachable indices lead to missing characters 
+       and break the tests provided by the project.
+
+Bug3 (Simple):
+- Path to the bug: commons-lang/commons-lang/src/main/java/org/apache/commons/lang3/StringUtils.java::1797
+- Original code: return Strings.CS.equals(cs1, cs2);
+- Changed code: return cs1 == null ? cs2 == null : cs1.equals(cs2);
+- Bug: StringBuilder, custom CharSequence, and other non-String implementations that contained the same characters were treated as unequal.
+
+Bug4 (Medium, fuzzer required):
+- Path: commons-lang/src/main/java/org/apache/commons/lang3/ClassUtils.java::1620
+- Original code: (no code — lines were added)
+- Changed code:
+       final int nullIdx = canonicalName.indexOf(0);
+       if (nullIdx >= 0) {
+             canonicalName = canonicalName.substring(0, nullIdx - arrIdx) + canonicalName.substring(nullIdx + 1);
+       }
+- Bug: Inside toCleanName(), when the class name is in encoded array format (e.g. [Ljava.lang.String;), the injected code searches for a null character (\0). 
+       If found, it splices the string using substring(0, nullIdx - arrIdx) — when nullIdx < arrIdx, this produces a negative index, throwing StringIndexOutOfBoundsException. 
+       Even when it doesn't crash, the splice corrupts the class name, causing downstream ClassNotFoundException or IllegalArgumentException for inputs that should parse cleanly. 
+       Only triggered by malformed encoded class names containing embedded null characters — no existing unit test covers this; requires a fuzzer feeding random strings to ClassUtils.getClass().
+- Fuzz test: ClassUtilsFuzzTest.java (currently commented out)
+
+Bug5 (Medium, fuzzer required):
+- Path: commons-lang/src/main/java/org/apache/commons/lang3/ClassUtils.java::{507, 539, 546}
+- Original code: for (int i = 0; i < dim; i++) {
+- Changed code: 
+       final boolean whitespaceDescriptorArray = hasWhitespaceDescriptorArray(name, className);
+       private static boolean hasWhitespaceDescriptorArray(final String originalName, final String normalizedName) {
+              return originalName != null && originalName.length() != normalizedName.length() && normalizedName.startsWith("[");
+       }
+        final int dimensionsToAppend = whitespaceDescriptorArray && dim > 1 ? dim - 1 : dim;
+        for (int i = 0; i < dimensionsToAppend; i++) {
+- Bug: Inputs such as " [ [ Ljava.lang.String; " were canonicalized with one fewer [] than they should have had.
+- Fuzz test: ClassUtilsFuzzTest.java (currently commented out)
+
+Bug6 (Medium, fuzzer required):
+- Path: commons-lang/src/main/java/org/apache/commons/lang3/ClassUtils.java::778
+- Original code: return getPackageName(getCanonicalName(name));
+- Changed code: 
+       final String canonicalName = getCanonicalName(name);
+        if (canonicalName == null) {
+            return getPackageName((String) null);
+        }
+        final int nullIdx = canonicalName.indexOf(0);
+        if (nullIdx >= 0) {
+            return canonicalName.substring(0, canonicalName.lastIndexOf(PACKAGE_SEPARATOR_CHAR, nullIdx) - nullIdx);
+        }
+        return getPackageName(canonicalName);
+- Bug: Additional logic in getPackageCanonicalName(...) and toCleanName(...) rewrote malformed class names containing \0, creating behavior that does not match upstream Commons Lang and complicates fuzzing results.
+- Fuzz test: ClassUtilsFuzzTest.java (currently commented out)
+
+Bug7 (Hard):
+- Path: commons-lang/commons-lang/src/main/java/org/apache/commons/lang3/IntegerRange.java::108
+- Original code: return super.fit(element).intValue();
+- Changed code: see the file for more details
+- Bug: Range.fit clamps out-of-bounds values:
+         - Below the range returns getMinimum()
+         - Above returns getMaximum().
+       The change swaps those endpoints (too low now return maximum, too high now return minimum), 
+       contradicting the IntegerRange Javadoc examples, and we removed the tests provided by the project to make it harder.
+
+Bug8 (Hard):
+- Path: commons-lang/commons-lang/src/main/java/org/apache/commons/lang3/text/FormattableUtils.java::100
+       StringUtils / CharSequenceUtils (normalizeFormattableEllipsis), introduced in the same change.
+- Original code: final CharSequence actualEllipsis = ObjectUtils.getIfNull(ellipsis, StringUtils.EMPTY);
+- Changed code: actualEllipsis = CharSequenceUtils.normalizeFormattableEllipsis(ellipsis), which delegates to StringUtils.normalizeFormattableEllipsis.
+- Bug: Empty ellipsis should mean "cut the string with no extra characters" (same as null). 
+       The new helper turns "" into a single space, so truncation adds a space and drops one real character from the prefix. 
+       This breaks the API contract and the Javadoc provided for that method. There is no existing test for checking this bug.
+
+Bug9 (Hard):
+- Path: commons-lang/commons-lang/src/main/java/org/apache/commons/lang3/time/DateUtils.java::942
+- Original code: cal1.get(Calendar.HOUR_OF_DAY) == cal2.get(Calendar.HOUR_OF_DAY) &&
+- Changed code: cal1.get(Calendar.HOUR) == cal2.get(Calendar.HOUR) &&
+- Bug: The method compared Calendar.HOUR instead of Calendar.HOUR_OF_DAY, so 1:45 AM and 1:45 PM could be treated as the same local time.
